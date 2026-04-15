@@ -4,20 +4,30 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, LoginFormValues } from "@/lib/schemas";
+import { sanitizeObject } from "@/lib/sanitize";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormValues) => {
     setError("");
     setLoading(true);
     try {
-      await login(username, password);
+      const cleanData = sanitizeObject(data);
+      await login(cleanData.username, cleanData.password);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error validando credenciales");
     } finally {
@@ -60,22 +70,21 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Formulario Estático */}
+        {/* Formulario */}
         <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-[var(--text-main)]">
                 Usuario
               </label>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--border-focus)]"
+                {...register("username")}
+                className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.username ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                 placeholder="admin"
-                required
                 autoComplete="username"
               />
+              {errors.username && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.username.message}</p>}
             </div>
 
             <div className="space-y-1.5">
@@ -87,13 +96,12 @@ export default function LoginPage() {
               </div>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--border-focus)]"
+                {...register("password")}
+                className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.password ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                 placeholder="••••••••"
-                required
                 autoComplete="current-password"
               />
+              {errors.password && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.password.message}</p>}
             </div>
 
             {error && (

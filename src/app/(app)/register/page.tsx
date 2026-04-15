@@ -2,29 +2,41 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { register } from "@/lib/api";
+import { register as registerApi } from "@/services/api";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema, RegisterFormValues } from "@/lib/schemas";
+import { sanitizeObject } from "@/lib/sanitize";
 
 export default function RegisterPage() {
   const router = useRouter();
-  
-  const [name, setName] = useState("");
-  const [lastname, setLastname] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit = async (data: RegisterFormValues) => {
     setError("");
     setLoading(true);
     
     try {
-      await register({ name, lastname, username, password });
+      // Omitimos confirmPassword antes de enviar al backend
+      const { confirmPassword, ...submitData } = data;
+      
+      // Sanitizamos los datos para prevenir inyecciones
+      const cleanData = sanitizeObject(submitData);
+      
+      await registerApi(cleanData);
       setSuccess(true);
       setTimeout(() => {
         router.push("/login"); // Redirección automática
@@ -71,7 +83,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Formulario Estático */}
+        {/* Formulario */}
         <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-2xl">
           {success ? (
             <div className="flex flex-col items-center text-center space-y-3 py-6 animate-fade-in">
@@ -84,7 +96,7 @@ export default function RegisterPage() {
               <p className="text-sm text-[var(--text-muted)]">Redirigiendo al inicio de sesión...</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--text-main)]">
@@ -92,12 +104,11 @@ export default function RegisterPage() {
                   </label>
                   <input
                     type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--border-focus)]"
+                    {...register("name")}
+                    className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.name ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                     placeholder="Ana"
-                    required
                   />
+                  {errors.name && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.name.message}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--text-main)]">
@@ -105,12 +116,11 @@ export default function RegisterPage() {
                   </label>
                   <input
                     type="text"
-                    value={lastname}
-                    onChange={(e) => setLastname(e.target.value)}
-                    className="input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--border-focus)]"
+                    {...register("lastname")}
+                    className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.lastname ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                     placeholder="García"
-                    required
                   />
+                  {errors.lastname && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.lastname.message}</p>}
                 </div>
               </div>
 
@@ -120,13 +130,12 @@ export default function RegisterPage() {
                 </label>
                 <input
                   type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--border-focus)]"
+                  {...register("username")}
+                  className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.username ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                   placeholder="ana_garcia"
-                  required
                   autoComplete="username"
                 />
+                {errors.username && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.username.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -135,13 +144,26 @@ export default function RegisterPage() {
                 </label>
                 <input
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--border-focus)]"
+                  {...register("password")}
+                  className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.password ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                   placeholder="••••••••"
-                  required
                   autoComplete="new-password"
                 />
+                {errors.password && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.password.message}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--text-main)]">
+                  Confirmar Contraseña
+                </label>
+                <input
+                  type="password"
+                  {...register("confirmPassword")}
+                  className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.confirmPassword ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                />
+                {errors.confirmPassword && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.confirmPassword.message}</p>}
               </div>
 
               {error && (

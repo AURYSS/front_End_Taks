@@ -1,4 +1,4 @@
-import { Task } from "@/lib/api";
+import { Task } from "@/services/api";
 
 interface TaskCardProps {
   task: Task;
