@@ -1,6 +1,6 @@
 /**
  * Capa de servicios API: Concentra todas las peticiones fetch al backend.
- * Implementa manejo global de errores, sanitización de datos y refresco automático de tokens.
+ * Integrado con Cookies HTTP-Only para máxima seguridad.
  */
 import { sanitizeObject } from "@/lib/sanitize";
 
@@ -10,9 +10,6 @@ if (!API_URL) {
   console.warn("Advertencia: NEXT_PUBLIC_API_URL no está definida en el entorno.");
 }
 
-/**
- * Clase de error personalizada para sesiones expiradas o no autorizadas.
- */
 export class UnauthorizedError extends Error {
   constructor(message = "Sesión expirada") {
     super(message);
@@ -20,60 +17,38 @@ export class UnauthorizedError extends Error {
   }
 }
 
-/**
- * Función para refrescar el token de acceso usando el refresh_token.
- */
-export async function refreshToken(): Promise<LoginResponse> {
-  const rt = localStorage.getItem("refresh_token");
-  if (!rt) throw new UnauthorizedError("No hay refresh token");
-
+export async function refreshToken(): Promise<void> {
   const res = await fetch(`${API_URL}/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh_token: rt }),
+    credentials: "include",
   });
 
   if (!res.ok) {
-    localStorage.clear();
-    if (typeof window !== "undefined") window.location.href = "/login";
+    if (typeof window !== "undefined" && window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+      window.location.href = "/login";
+    }
     throw new UnauthorizedError("Sesión invalidada");
   }
-
-  const data: LoginResponse = await res.json();
-  localStorage.setItem("access_token", data.access_token);
-  localStorage.setItem("refresh_token", data.refresh_token);
-
-  // Opcional: Disparar evento para que AuthContext se entere
-  window.dispatchEvent(new Event("storage_sync"));
-
-  return data;
+  
+  // Opcional: Notificar actualización a pestañas
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("storage_sync"));
 }
 
-/**
- * Wrapper de fetch que maneja el token de acceso y el refresco automático.
- */
 async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<any> {
-  const token = localStorage.getItem("access_token");
-
   const headers = {
     ...options.headers,
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   } as Record<string, string>;
 
-  let res = await fetch(url, { ...options, headers });
+  let res = await fetch(url, { ...options, headers, credentials: "include" });
 
-  // Si recibimos 401, intentamos refrescar el token UNA vez
+  // Si recibimos 401 (Por manipulación maliciosa de cookie o expiración pura)
   if (res.status === 401) {
-    try {
-      const newTokens = await refreshToken();
-      // Re-intentar con el nuevo token
-      headers.Authorization = `Bearer ${newTokens.access_token}`;
-      res = await fetch(url, { ...options, headers });
-    } catch (err) {
-      // Si el refresco falla, redirigimos al login (ya manejado en refreshToken)
-      throw err;
+    if (typeof window !== "undefined" && window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+      window.location.href = "/login";
     }
+    throw new UnauthorizedError("Sesión invalidada por el servidor");
   }
 
   if (!res.ok) {
@@ -81,26 +56,17 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<an
     throw new Error(err?.message || "Error en la petición");
   }
 
-  // Si es un DELETE o similar que devuelve 204 No Content, no intentamos parsear JSON
   if (res.status === 204) return null;
 
   return res.json();
 }
 
-/**
- * Función auxiliar para manejar respuestas genéricas (usada solo en login/register).
- */
 async function handleResponse(res: Response) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.message || "Ocurrió un error inesperado");
   }
   return res.json();
-}
-
-export interface LoginResponse {
-  access_token: string;
-  refresh_token: string;
 }
 
 export interface Task {
@@ -119,49 +85,40 @@ export interface CreateTask {
   userId: number;
 }
 
-/**
- * Autentica al usuario y devuelve los tokens de acceso.
- */
-export async function login(username: string, password: string): Promise<LoginResponse> {
+export async function login(username: string, password: string): Promise<any> {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
+    credentials: "include",
   });
   return handleResponse(res);
 }
 
-/**
- * Registra un nuevo usuario en el sistema. Sanitiza los datos automáticamente.
- */
 export async function register(data: any): Promise<any> {
   const sanitizedData = sanitizeObject(data);
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(sanitizedData),
+    credentials: "include",
   });
   return handleResponse(res);
 }
 
-export async function logout(token: string) {
-  // Intentamos notificar al backend, pero limpiamos localmente siempre
+export async function logout() {
   try {
     await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
     });
-  } catch { }
-  localStorage.clear();
+  } catch {}
 }
 
 export async function getMe() {
   return fetchWithAuth(`${API_URL}/auth/me`);
 }
 
-/**
- * Obtiene el listado de tareas del usuario autenticado.
- */
 export async function getTasks(): Promise<Task[]> {
   return fetchWithAuth(`${API_URL}/api/task`, { cache: "no-store" });
 }
@@ -170,9 +127,6 @@ export async function getTaskById(id: number): Promise<Task> {
   return fetchWithAuth(`${API_URL}/api/task/${id}`);
 }
 
-/**
- * Crea una nueva tarea. Aplica sanitización a los campos de texto.
- */
 export async function createTask(task: CreateTask): Promise<Task> {
   const sanitizedTask = sanitizeObject(task);
   return fetchWithAuth(`${API_URL}/api/task`, {
@@ -181,9 +135,6 @@ export async function createTask(task: CreateTask): Promise<Task> {
   });
 }
 
-/**
- * Actualiza una tarea existente. Permite actualizaciones parciales sanitizadas.
- */
 export async function updateTask(id: number, task: Partial<CreateTask>): Promise<Task> {
   const sanitizedTask = sanitizeObject(task);
   return fetchWithAuth(`${API_URL}/api/task/${id}`, {
@@ -198,20 +149,12 @@ export async function deleteTask(id: number): Promise<void> {
   });
 }
 
-/**
- * Obtiene el listado de todos los usuarios (Solo Admin).
- */
 export async function getUsers(): Promise<any[]> {
   return fetchWithAuth(`${API_URL}/user`);
 }
 
-/**
- * Elimina un usuario (Solo Admin).
- */
 export async function deleteUser(id: number): Promise<void> {
   return fetchWithAuth(`${API_URL}/user/${id}`, {
     method: "DELETE",
   });
 }
-
-

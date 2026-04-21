@@ -92,15 +92,15 @@ export function UsersView() {
               </div>
               <div className="col-span-2">
                 <span className="text-sm text-[var(--text-main)] font-medium">
-                  {user._count?.taks || 0}
+                  {user._count?.tasks || 0}
                 </span>
               </div>
               <div className="col-span-2 text-right">
                 <button
                   onClick={() => handleDeleteRequest(user.id)}
-                  disabled={user._count?.taks > 0 || user.role === 'admin'}
+                  disabled={user._count?.tasks > 0 || user.role === 'admin'}
                   className="p-1.5 text-[var(--text-muted)] hover:text-[var(--danger-text)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  title={user._count?.taks > 0 ? "No se puede eliminar: tiene tareas" : "Eliminar usuario"}
+                  title={user._count?.tasks > 0 ? "No se puede eliminar: tiene tareas" : (user.role === 'admin' ? "No puedes eliminar a un Admin" : "Eliminar usuario")}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
