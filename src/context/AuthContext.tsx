@@ -26,6 +26,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Función para cargar datos validando contra la API
   const loadStoredAuth = async () => {
+    if (typeof window !== "undefined" && (window.location.pathname === "/register" || window.location.pathname === "/login")) {
+      setIsLoading(false);
+      return;
+    }
     try {
       const userPayload = await getMe();
       if (userPayload && userPayload.id) {

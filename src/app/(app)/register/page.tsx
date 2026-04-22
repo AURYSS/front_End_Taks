@@ -12,7 +12,7 @@ import { sanitizeObject } from "@/lib/sanitize";
 
 export default function RegisterPage() {
   const router = useRouter();
-  
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -20,22 +20,25 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
   });
 
+  const pwd = watch("password") || "";
+
   const onSubmit = async (data: RegisterFormValues) => {
     setError("");
     setLoading(true);
-    
+
     try {
       // Omitimos confirmPassword antes de enviar al backend
       const { confirmPassword, ...submitData } = data;
-      
+
       // Sanitizamos los datos para prevenir inyecciones
       const cleanData = sanitizeObject(submitData);
-      
+
       await registerApi(cleanData);
       setSuccess(true);
       setTimeout(() => {
@@ -50,14 +53,14 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative bg-[var(--bg-base)] selection:bg-[var(--bg-hover)] selection:text-[var(--text-main)] py-12">
-      
+
       {/* Botón de tema en la esquina superior derecha */}
       <div className="absolute top-6 right-6 z-20">
         <ThemeToggle />
       </div>
 
       {/* Subtle Noise / Grid Overlay */}
-      <div 
+      <div
         className="absolute inset-0 z-0 opacity-20 pointer-events-none"
         style={{
           backgroundImage: `linear-gradient(to right, var(--border-color) 1px, transparent 1px), linear-gradient(to bottom, var(--border-color) 1px, transparent 1px)`,
@@ -72,7 +75,7 @@ export default function RegisterPage() {
         <div className="mb-8 text-center flex flex-col items-center">
           <div className="w-12 h-12 bg-[var(--text-main)] rounded-lg flex items-center justify-center shadow-lg shadow-[var(--text-main)]/5 mb-6 ring-1 ring-[var(--border-color)]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bg-base)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5zm0 22l-10-5V9l10 5 10-5v10l-10 5z"/>
+              <path d="M12 2L2 7l10 5 10-5-10-5zm0 22l-10-5V9l10 5 10-5v10l-10 5z" />
             </svg>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-main)] mb-1">
@@ -149,6 +152,33 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   autoComplete="new-password"
                 />
+
+                {/* Checklist gris con validaciones asíncronas */}
+                <div className="p-4 mt-2 bg-[#e2e4e9] dark:bg-[var(--bg-panel-hover)] rounded-xl space-y-2.5 shadow-inner">
+                  {[
+                    { label: "Mínimo 8 caracteres", test: (v: string) => v.length >= 8 },
+                    { label: "1 letra mayúscula", test: (v: string) => /[A-Z]/.test(v) },
+                    { label: "1 letra minúscula", test: (v: string) => /[a-z]/.test(v) },
+                    { label: "1 número", test: (v: string) => /[0-9]/.test(v) },
+                    { label: "1 símbolo especial", test: (v: string) => /[^A-Za-z0-9]/.test(v) },
+                  ].map((check, idx) => {
+                    const pass = check.test(pwd);
+                    return (
+                      <div key={idx} className="flex items-center gap-2.5 text-sm font-semibold tracking-wide">
+                        {pass ? (
+                          <svg className="w-[18px] h-[18px] text-[#1fc182]" viewBox="0 0 24 24" fill="currentColor">
+                            <path fillRule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-[18px] h-[18px] text-[#6b7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <circle cx="12" cy="12" r="9" strokeWidth="2.5" />
+                          </svg>
+                        )}
+                        <span className={pass ? "text-[#1fc182]" : "text-[#4b5563] dark:text-[var(--text-main)]"}>{check.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
                 {errors.password && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.password.message}</p>}
               </div>
 
@@ -189,7 +219,7 @@ export default function RegisterPage() {
             </form>
           )}
         </div>
-        
+
         <p className="mt-8 text-center text-xs text-[var(--text-muted)] px-8">
           ¿Ya tienes cuenta? <Link href="/login" className="text-[var(--text-main)] font-medium hover:underline">Ingresa aquí</Link>.
         </p>

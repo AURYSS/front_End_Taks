@@ -6,12 +6,12 @@ const cspHeader = `
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data:;
     font-src 'self' data:;
-    connect-src 'self' http://localhost:4000 http://192.168.1.112:4000 ws://localhost:3000 wss://localhost:3000 wss://192.168.1.112:3000;
+    connect-src 'self' http://localhost:3000 http://localhost:3001 http://localhost:4000 http://192.168.1.112:3000 http://192.168.1.112:4000 ws://localhost:3000 wss://localhost:3000 wss://192.168.1.112:3000;
+    media-src 'self' data:;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    upgrade-insecure-requests;
 `;
 
 const nextConfig: NextConfig = {

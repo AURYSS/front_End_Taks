@@ -51,22 +51,65 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<an
     throw new UnauthorizedError("Sesión invalidada por el servidor");
   }
 
+  // Leemos el cuerpo como texto para evitar errores de doble lectura
+  const text = await res.text();
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch (e) {
+    // No es JSON
+  }
+
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.message || "Error en la petición");
+    let errorMessage = "Error en la petición";
+    if (data && data.message) {
+      errorMessage = Array.isArray(data.message) ? data.message.join(", ") : data.message;
+    } else {
+      switch (res.status) {
+        case 401: errorMessage = "No autorizado: Credenciales incorrectas o sesión expirada"; break;
+        case 403: errorMessage = "Prohibido: No tienes permisos para esta acción"; break;
+        case 404: errorMessage = "No encontrado: El recurso no existe"; break;
+        default: errorMessage = `Error ${res.status}: ${res.statusText || "Error desconocido"}`;
+      }
+    }
+    throw new Error(errorMessage);
   }
 
   if (res.status === 204) return null;
-
-  return res.json();
+  return data;
 }
 
 async function handleResponse(res: Response) {
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.message || "Ocurrió un error inesperado");
+  // Leemos el cuerpo como texto primero para poder usarlo varias veces si hace falta
+  const text = await res.text();
+  let data = null;
+  
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch (e) {
+    // No es JSON
   }
-  return res.json();
+
+  if (!res.ok) {
+    let errorMessage = "Ocurrió un error inesperado";
+    
+    if (data && data.message) {
+      errorMessage = Array.isArray(data.message) ? data.message.join(", ") : data.message;
+    } else {
+      switch (res.status) {
+        case 401: errorMessage = "Usuario o contraseña incorrectos"; break;
+        case 403: errorMessage = "No tienes permiso para acceder"; break;
+        case 404: errorMessage = "Servicio no encontrado"; break;
+        case 409: errorMessage = "El nombre de usuario ya está en uso"; break;
+        case 500: errorMessage = "Error interno del servidor. Inténtalo más tarde"; break;
+        default: errorMessage = `Error ${res.status}: ${res.statusText || "Error desconocido"}`;
+      }
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  return data;
 }
 
 export interface Task {
@@ -120,16 +163,16 @@ export async function getMe() {
 }
 
 export async function getTasks(): Promise<Task[]> {
-  return fetchWithAuth(`${API_URL}/api/task`, { cache: "no-store" });
+  return fetchWithAuth(`${API_URL}/task`, { cache: "no-store" });
 }
 
 export async function getTaskById(id: number): Promise<Task> {
-  return fetchWithAuth(`${API_URL}/api/task/${id}`);
+  return fetchWithAuth(`${API_URL}/task/${id}`);
 }
 
 export async function createTask(task: CreateTask): Promise<Task> {
   const sanitizedTask = sanitizeObject(task);
-  return fetchWithAuth(`${API_URL}/api/task`, {
+  return fetchWithAuth(`${API_URL}/task`, {
     method: "POST",
     body: JSON.stringify(sanitizedTask),
   });
@@ -137,16 +180,20 @@ export async function createTask(task: CreateTask): Promise<Task> {
 
 export async function updateTask(id: number, task: Partial<CreateTask>): Promise<Task> {
   const sanitizedTask = sanitizeObject(task);
-  return fetchWithAuth(`${API_URL}/api/task/${id}`, {
+  return fetchWithAuth(`${API_URL}/task/${id}`, {
     method: "PUT",
     body: JSON.stringify(sanitizedTask),
   });
 }
 
 export async function deleteTask(id: number): Promise<void> {
-  return fetchWithAuth(`${API_URL}/api/task/${id}`, {
+  return fetchWithAuth(`${API_URL}/task/${id}`, {
     method: "DELETE",
   });
+}
+
+export async function getLogs(): Promise<any[]> {
+  return fetchWithAuth(`${API_URL}/logs`);
 }
 
 export async function getUsers(): Promise<any[]> {
@@ -156,5 +203,19 @@ export async function getUsers(): Promise<any[]> {
 export async function deleteUser(id: number): Promise<void> {
   return fetchWithAuth(`${API_URL}/user/${id}`, {
     method: "DELETE",
+  });
+}
+
+export async function createUser(data: any): Promise<any> {
+  return fetchWithAuth(`${API_URL}/user`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateUser(id: number, data: any): Promise<any> {
+  return fetchWithAuth(`${API_URL}/user/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
   });
 }

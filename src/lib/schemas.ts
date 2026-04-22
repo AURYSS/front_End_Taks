@@ -54,6 +54,25 @@ export const taskSchema = z.object({
   priority: z.boolean(),
 });
 
+export const userAdminSchema = z.object({
+  name: secureString
+    .min(2, "Mínimo 2 letras")
+    .max(50, "Nombre demasiado largo"),
+  lastname: secureString
+    .min(2, "Mínimo 2 letras")
+    .max(50, "Apellido demasiado largo"),
+  username: secureString
+    .min(4, "Mínimo 4 caracteres")
+    .max(20, "Máximo 20 caracteres")
+    .regex(usernameRegex, "Solo letras, números, puntos y guiones bajos"),
+  password: z.string()
+    .min(8, "Mínimo 8 caracteres")
+    .max(100, "Demasiado larga")
+    .or(z.literal("")), // Permite contraseña vacía para edición (no cambiarla)
+  role: z.enum(["user", "admin"]),
+});
+
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type TaskFormValues = z.infer<typeof taskSchema>;
+export type UserAdminFormValues = z.infer<typeof userAdminSchema>;

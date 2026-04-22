@@ -16,6 +16,7 @@ import { TaskModal } from "@/components/TaskModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { UsersView } from "@/components/UsersView";
+import LogsView from "@/components/LogsView";
 
 export default function DashboardPage() {
   const { token, userId, username, role, logout, isLoading: authLoading } = useAuth();
@@ -26,7 +27,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-  const [view, setView] = useState<"tasks" | "users">("tasks");
+  const [view, setView] = useState<"tasks" | "users" | "logs">("tasks");
 
   // Confirm Modal state
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -142,15 +143,26 @@ export default function DashboardPage() {
           </button>
           
           {role === 'admin' && (
-            <button 
-              onClick={() => setView("users")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${view === "users" ? "bg-[var(--bg-hover)]/50 text-[var(--text-main)]" : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)]/30"}`}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              Usuarios
-            </button>
+            <>
+              <button 
+                onClick={() => setView("users")}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${view === "users" ? "bg-[var(--bg-hover)]/50 text-[var(--text-main)]" : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)]/30"}`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Usuarios
+              </button>
+              <button 
+                onClick={() => setView("logs")}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${view === "logs" ? "bg-[var(--bg-hover)]/50 text-[var(--text-main)]" : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)]/30"}`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Auditoría
+              </button>
+            </>
           )}
         </div>
 
@@ -180,7 +192,9 @@ export default function DashboardPage() {
            <div className="flex items-center text-sm">
              <span className="text-[var(--text-muted)]">CARH</span>
              <svg className="mx-2 w-4 h-4 text-[var(--text-muted)] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
-             <span className="text-[var(--text-main)] font-medium capitalize">{view === 'tasks' ? 'Tareas' : 'Usuarios'}</span>
+             <span className="text-[var(--text-main)] font-medium capitalize">
+               {view === 'tasks' ? 'Tareas' : view === 'users' ? 'Usuarios' : 'Auditoría'}
+             </span>
            </div>
            
            <div className="flex items-center gap-3">
@@ -263,8 +277,10 @@ export default function DashboardPage() {
                   </div>
                 )}
               </>
-            ) : (
+            ) : view === 'users' ? (
               <UsersView />
+            ) : (
+              <LogsView />
             )}
           </div>
         </div>
