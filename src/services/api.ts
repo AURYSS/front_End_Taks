@@ -196,6 +196,10 @@ export async function getLogs(): Promise<any[]> {
   return fetchWithAuth(`${API_URL}/logs`);
 }
 
+export async function getMyLogs(): Promise<any[]> {
+  return fetchWithAuth(`${API_URL}/logs/me`);
+}
+
 export async function getUsers(): Promise<any[]> {
   return fetchWithAuth(`${API_URL}/user`);
 }

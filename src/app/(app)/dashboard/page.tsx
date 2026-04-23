@@ -17,6 +17,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { UsersView } from "@/components/UsersView";
 import LogsView from "@/components/LogsView";
+import MyLogsView from "@/components/MyLogsView";
 
 export default function DashboardPage() {
   const { token, userId, username, role, logout, isLoading: authLoading } = useAuth();
@@ -27,7 +28,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-  const [view, setView] = useState<"tasks" | "users" | "logs">("tasks");
+  const [view, setView] = useState<"tasks" | "users" | "logs" | "mylogs">("tasks");
 
   // Confirm Modal state
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -164,6 +165,18 @@ export default function DashboardPage() {
               </button>
             </>
           )}
+
+          {role !== 'admin' && (
+            <button 
+              onClick={() => setView("mylogs")}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${view === "mylogs" ? "bg-[var(--bg-hover)]/50 text-[var(--text-main)]" : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)]/30"}`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2m14-6l-4-4m0 0l-4 4m4-4v12" />
+              </svg>
+              Mi Auditoría
+            </button>
+          )}
         </div>
 
         <div className="p-4 border-t border-[var(--border-color)] flex items-center justify-between">
@@ -193,7 +206,7 @@ export default function DashboardPage() {
              <span className="text-[var(--text-muted)]">CARH</span>
              <svg className="mx-2 w-4 h-4 text-[var(--text-muted)] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
              <span className="text-[var(--text-main)] font-medium capitalize">
-               {view === 'tasks' ? 'Tareas' : view === 'users' ? 'Usuarios' : 'Auditoría'}
+               {view === 'tasks' ? 'Tareas' : view === 'users' ? 'Usuarios' : view === 'logs' ? 'Auditoría Global' : 'Mi Auditoría'}
              </span>
            </div>
            
@@ -279,8 +292,10 @@ export default function DashboardPage() {
               </>
             ) : view === 'users' ? (
               <UsersView />
-            ) : (
+            ) : view === 'logs' ? (
               <LogsView />
+            ) : (
+              <MyLogsView />
             )}
           </div>
         </div>
