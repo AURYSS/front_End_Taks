@@ -80,6 +80,8 @@ export default function LoginPage() {
               <input
                 type="text"
                 {...register("username")}
+                minLength={4}
+                maxLength={20}
                 className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.username ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                 placeholder="admin"
                 autoComplete="username"
@@ -97,6 +99,8 @@ export default function LoginPage() {
               <input
                 type="password"
                 {...register("password")}
+                minLength={1}
+                maxLength={100}
                 className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.password ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                 placeholder="••••••••"
                 autoComplete="current-password"

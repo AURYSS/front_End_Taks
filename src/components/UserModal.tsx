@@ -113,6 +113,8 @@ export function UserModal({ isOpen, onClose, onSave, userToEdit }: UserModalProp
                   <input
                     type="text"
                     {...register("name")}
+                    minLength={2}
+                    maxLength={50}
                     className={`input-field w-full px-3 py-2 text-sm rounded-lg bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] focus:ring-1 transition-colors`}
                   />
                   {errors.name && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.name.message}</p>}
@@ -122,6 +124,8 @@ export function UserModal({ isOpen, onClose, onSave, userToEdit }: UserModalProp
                   <input
                     type="text"
                     {...register("lastname")}
+                    minLength={2}
+                    maxLength={50}
                     className={`input-field w-full px-3 py-2 text-sm rounded-lg bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] focus:ring-1 transition-colors`}
                   />
                   {errors.lastname && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.lastname.message}</p>}
@@ -133,6 +137,8 @@ export function UserModal({ isOpen, onClose, onSave, userToEdit }: UserModalProp
                 <input
                   type="text"
                   {...register("username")}
+                  minLength={4}
+                  maxLength={20}
                   className={`input-field w-full px-3 py-2 text-sm rounded-lg bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] focus:ring-1 transition-colors`}
                 />
                 {errors.username && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.username.message}</p>}
@@ -143,6 +149,8 @@ export function UserModal({ isOpen, onClose, onSave, userToEdit }: UserModalProp
                 <input
                   type="password"
                   {...register("password")}
+                  minLength={userToEdit ? 0 : 8}
+                  maxLength={100}
                   className={`input-field w-full px-3 py-2 text-sm rounded-lg bg-[var(--bg-base)] text-[var(--text-main)] border-[var(--border-color)] focus:ring-1 transition-colors`}
                   placeholder="••••••••"
                 />

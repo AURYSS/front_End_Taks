@@ -108,6 +108,8 @@ export default function RegisterPage() {
                   <input
                     type="text"
                     {...register("name")}
+                    minLength={2}
+                    maxLength={50}
                     className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.name ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                     placeholder="Ana"
                   />
@@ -120,6 +122,8 @@ export default function RegisterPage() {
                   <input
                     type="text"
                     {...register("lastname")}
+                    minLength={2}
+                    maxLength={50}
                     className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.lastname ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                     placeholder="García"
                   />
@@ -134,6 +138,8 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   {...register("username")}
+                  minLength={4}
+                  maxLength={20}
                   className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.username ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                   placeholder="ana_garcia"
                   autoComplete="username"
@@ -148,7 +154,9 @@ export default function RegisterPage() {
                 <input
                   type="password"
                   {...register("password")}
-                  className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.password ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
+                  minLength={8}
+                  maxLength={100}
+                  className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] placeholder-[var(--text-muted)] text-[var(--text-main)] focus:ring-1 transition-colors ${errors.password ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                   placeholder="••••••••"
                   autoComplete="new-password"
                 />

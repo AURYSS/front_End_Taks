@@ -108,13 +108,15 @@ export function TaskModal({ isOpen, onClose, onSave, taskToEdit, userId }: TaskM
             <div className="space-y-5">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[var(--text-main)]">Título del problema</label>
-                <input
-                  type="text"
-                  {...register("name")}
-                  className={`input-field w-full px-3 py-2 text-sm rounded-lg bg-[var(--bg-base)] text-[var(--text-main)] placeholder-[var(--text-muted)] focus:ring-1 transition-colors ${errors.name ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
-                  placeholder="Ej. Revisar error de navegación"
-                  autoFocus
-                />
+                  <input
+                    type="text"
+                    {...register("name")}
+                    minLength={3}
+                    maxLength={30}
+                    className={`input-field w-full px-3 py-2.5 rounded-lg text-sm bg-[var(--bg-base)] text-[var(--text-main)] placeholder-[var(--text-muted)] focus:ring-1 transition-colors ${errors.name ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
+                    placeholder="Ej. Revisar error de navegación"
+                    autoFocus
+                  />
                 {errors.name && <p className="text-xs text-[var(--danger-text)] mt-1">{errors.name.message}</p>}
               </div>
 
@@ -122,6 +124,8 @@ export function TaskModal({ isOpen, onClose, onSave, taskToEdit, userId }: TaskM
                 <label className="text-sm font-medium text-[var(--text-main)]">Descripción</label>
                 <textarea
                   {...register("description")}
+                  minLength={10}
+                  maxLength={300}
                   className={`input-field w-full px-3 py-2 text-sm rounded-lg bg-[var(--bg-base)] text-[var(--text-main)] placeholder-[var(--text-muted)] min-h-[100px] resize-y focus:ring-1 transition-colors ${errors.description ? 'border-[var(--danger-border)] focus:border-[var(--danger-border)] focus:ring-[var(--danger-border)]' : 'border-[var(--border-color)] focus:border-[var(--border-focus)] focus:ring-[var(--border-focus)]'}`}
                   placeholder="Añade más detalles..."
                 />
