@@ -43,14 +43,22 @@ export const registerSchema = z.object({
 export const taskSchema = z.object({
   name: secureString
     .min(3, "El título es muy corto, escribe al menos 3 caracteres")
-    .max(50, "El título no puede exceder los 50 caracteres")
+    .max(30, "El título no puede exceder los 30 caracteres")
     .refine(val => !/(.)\1{4,}/.test(val), "El título tiene caracteres sospechosamente repetitivos (spam)")
-    .refine(val => !/\S{16,}/.test(val), "El título contiene palabras irreales (usa espacios entre palabras)"),
+    .refine(val => !/\S{16,}/.test(val), "El título contiene palabras irreales (usa espacios entre palabras)")
+    .refine(val => {
+      const symbols = val.match(/[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñ\s]/g) || [];
+      return symbols.length <= 4;
+    }, "El título contiene demasiados símbolos especiales"),
   description: secureString
     .min(10, "Por favor explica un poco más la tarea (mínimo 10 caracteres)")
     .max(300, "Has excedido el límite de 300 caracteres para la descripción")
     .refine(val => !/(.)\1{5,}/.test(val), "La descripción tiene demasiados caracteres repetidos (spam)")
-    .refine(val => !/\S{30,}/.test(val), "Hay texto continuo sin espacios muy largo. Por favor escribe con normalidad."),
+    .refine(val => !/\S{30,}/.test(val), "Hay texto continuo sin espacios muy largo. Por favor escribe con normalidad.")
+    .refine(val => {
+      const symbols = val.match(/[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñ\s]/g) || [];
+      return symbols.length <= 15;
+    }, "La descripción contiene demasiados símbolos especiales (máximo 15)"),
   priority: z.boolean(),
 });
 
